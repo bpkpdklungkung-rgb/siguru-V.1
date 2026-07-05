@@ -3,23 +3,39 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbzOszr-Ln50c5sjgMnjlZ86kcHfodvFTyw1iJhumY4T-S3aUxocba3JPrHKOZsxB7Q6/exec';
 
 console.log('🔧 SIGURU-SD Helper.js loaded');
+console.log('📍 API_URL:', API_URL);
 
 async function apiGet(action, params = {}) {
+    console.log('\n📡 API GET:', action);
+    console.log('Params:', params);
+    
     try {
         let url = API_URL + '?action=' + encodeURIComponent(action);
         
+        // HANYA tambahkan parameter yang TIDAK kosong
         Object.keys(params).forEach(key => {
             const value = params[key];
-            if (value !== null && value !== undefined && value !== '' && value !== 'undefined') {
+            if (value !== null && value !== undefined && value !== '' && value !== 'undefined' && value !== 'null') {
                 url += '&' + key + '=' + encodeURIComponent(value);
+                console.log('✅ Added param:', key, '=', value);
+            } else {
+                console.log('⏭️ Skipped empty param:', key);
             }
         });
         
+        console.log('🔗 Final URL:', url);
+        
         const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-        return await response.json();
+        const text = await response.text();
+        console.log('📥 Response:', text.substring(0, 300));
+        
+        const data = JSON.parse(text);
+        console.log('✅ Parsed - Success:', data.success, 'Data length:', data.data?.length || 0);
+        
+        return data;
     } catch (error) {
-        console.error('Error:', error);
-        return { success: false, message: 'Koneksi gagal' };
+        console.error('❌ Error:', error);
+        return { success: false, message: 'Koneksi gagal: ' + error.message };
     }
 }
 
@@ -32,7 +48,6 @@ async function apiPost(action, data = {}) {
         });
         return await response.json();
     } catch (error) {
-        console.error('Error:', error);
         return { success: false, message: 'Koneksi gagal' };
     }
 }
